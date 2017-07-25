@@ -18,8 +18,9 @@ logger.log('Info', 'Scrapping js logging start');
 // Read ICT Page
 var request = require('request');
 var cheerio = require("cheerio");
-var ict_url = "http://ict.cau.ac.kr/20150610/sub05/sub05_01_list.php"
+var ict_url = "http://ict.cau.ac.kr/20150610/sub05/sub05_01_list.php";
 
+logger.log('Info', 'Scrapping Start');
 request(ict_url, function(error, response, body){
     if (error) {
         logger.log('Error', "request error");
@@ -34,10 +35,13 @@ request(ict_url, function(error, response, body){
         var children = $(this).children();
         var row = {
             "number": Number($(children[0]).find('a').attr('href').replace(/[^0-9]/g, '')),
-            "title": $(children[1]).text().replace(/\t|\n/g, ''),
+            "title": $(children[1]).text().replace(/[\n\t\r]/g, ''),
             "date": $(children[2]).text()
         };
+        console.log(row);
     });
+
+    logger.log('Info', 'Request End');
 
 });
 
