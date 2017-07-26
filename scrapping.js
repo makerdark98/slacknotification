@@ -6,24 +6,30 @@ var winston = require('winston');
 
 var logger = new (winston.Logger)({
     transports: [
-        new (winston.transports.Console)(),
-        new (winston.transports.File)({ filename: 'scrapping.log'})
+        new (winston.transports.Console)({
+            timestamp: true
+        }),
+        new (winston.transports.File)({
+            timestamp: 'true',
+            filename: 'log/scrapping.log'
+        })
     ]
 });
-//
 
-
-logger.log('Info', 'Scrapping js logging start');
+logger.log('info', 'Scrapping js logging start');
 
 // Read ICT Page
 var request = require('request');
-var cheerio = require("cheerio");
+var cheerio = require('cheerio');
 var ict_url = "http://ict.cau.ac.kr/20150610/sub05/sub05_01_list.php";
+var Promises = require('bluebird');
 
-logger.log('Info', 'Scrapping Start');
-request(ict_url, function(error, response, body){
+var postarray = [];
+logger.log('info', 'Scrapping Start');
+logger.log('info', 'request start');
+request(ict_url, function (error, response, body) {
     if (error) {
-        logger.log('Error', "request error");
+        logger.log('error', "request error");
         throw error;
     }
 
@@ -38,30 +44,25 @@ request(ict_url, function(error, response, body){
             "title": $(children[1]).text().replace(/[\n\t\r]/g, ''),
             "date": $(children[2]).text()
         };
-        console.log(row);
+        postarray.push(row);
     });
-
-    logger.log('Info', 'Request End');
-
 });
 
-
-// Read Database Password File
+logger.log('info', 'db start');
 var fs = require('fs');
-var dbpassword;
-logger.log('Info', 'Start to read dbpassword.txt');
-fs.readFile('dbpassword.txt', 'utf-8', function (error, data) {
-    dbpassword = data;
-    logger.log('Info', 'End to read dbpassword.txt');
+var sqlite3 = require('sqlite3').verbose();
+var db = new sqlite3.Database('data.db');
+db.serialize(function () {
+    fs.readFile('db.sql', 'utf-8', function (error, data) {
+        //console.log(data);
+        if (error) logger.log('error', error);
+        db.run(data);
+    });
+
 });
 
 // Connect Database
-
 //ToDo : db Connection, db design
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('data.db');
-db.serialize(function(){
 
-});
 
-logger.log('Info', 'Scrapping js logging End');
+logger.log('info', 'Scrapping js logging End');
