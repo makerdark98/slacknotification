@@ -10,11 +10,11 @@ logger=require('./logger.js').logger('log/scrapping.log');
 
 // Read ICT Page
 
-function requestCall(){
+function requestIctCall(){
     return new Promise(function(resolve,reject) {
 
 
-        logger.log('info', 'requestCall start');
+        logger.log('info', 'requestIctCall start');
 
 
         let request = require('request');
@@ -44,13 +44,13 @@ function requestCall(){
             });
             resolve(postarray);
 
-            logger.log('info', 'requestCall End');
+            logger.log('info', 'requestIctCall End');
         });
     });
 }
 
 
-requestCall().then(function(postarray){
+requestIctCall().then(function(postarray){
     let databasejs = require('./database.js');
     databasejs.getDB(ictdb).then(function(database){
 
