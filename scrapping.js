@@ -26,9 +26,9 @@ logger.log('info', 'Scrapping Start');
 logger.log('info', 'request start');
 function requestCall(){
     return new Promise(function(resolve,reject) {
-        var request = require('request');
-        var cheerio = require('cheerio');
-        var postarray = [];
+        let request = require('request');
+        let cheerio = require('cheerio');
+        let postarray = [];
         request(ict_url, function (error, response, body) {
             if (error) {
                 logger.log('error', "request error");
@@ -36,13 +36,13 @@ function requestCall(){
                 throw error;
             }
 
-            var $ = cheerio.load(body, {
+            let $ = cheerio.load(body, {
                 normalizeWhitespace: true
             });
-            var postElements = $("table.board_list_type01 tbody tr");
+            let postElements = $("table.board_list_type01 tbody tr");
             postElements.each(function () {
-                var children = $(this).children();
-                var row = {
+                let children = $(this).children();
+                let row = {
                     "number": Number($(children[0]).find('a').attr('href').replace(/[^0-9]/g, '')),
                     "title": $(children[1]).text().replace(/[\n\t\r]/g, ''),
                     "date": $(children[2]).text()
@@ -53,43 +53,46 @@ function requestCall(){
         });
     });
 }
-function dbCall() {
-    return new Promise(function(resolve, reject) {
-        logger.log('info', 'db start');
-        var fs = require('fs');
-        var sqlite3 = require('sqlite3').verbose();
-        var db = new sqlite3.Database('data.db');
-        db.serialize(function () {
-            fs.readFile('db.sql', 'utf-8', function (error, data) {
-                //console.log(data);
-                if (error){
-                    logger.log('error', error);
-                    reject(error);
-                    throw error;
-                }
-                db.run(data);
-            });
-
+function setDBTable(dataBase){
+    return new Promise(function(resolve, reject){
+        logger.log('info', 'start setDBTable');
+        let fs = require('fs');
+        dataBase.serialize(function () {
+            data = fs.readFileSync('db.sql', 'utf-8');
+            dataBase.run(data);
         });
-        resolve(db);
+        resolve();
+    });
+}
+function getDB(){
+    return new Promise(function(resolve, reject) {
+        logger.log('info', 'start getDB');
+        let sqlite3 = require('sqlite3').verbose();
+        let dataBase = new sqlite3.Database('data.db');
+        setDBTable(dataBase).then(function(){
+            resolve(dataBase);
+        });
     });
 }
 
 requestCall().then(function(postarray){
     logger.log('info', 'requestCall End');
     console.log(postarray);
-    dbCall().then(function(db){
-        logger.log('info', 'dbCall End');
-        logger.log('info', db);
-        postarray.forEach(function(value, idx) {
-            db.run('INSERT OR IGNORE INTO ictPosts(idx, title, recent_date, readCheck) VALUES(' + value['number'] + ',\"' + value['title'] + '\",\"' + value['date'] + '\",0);');
-            console.log('INSERT OR IGNORE INTO ictPosts(idx, title, recent_date, readCheck) VALUES(' + value['number'] + ',\"' + value['title'] + '\",\"' + value['date'] + '\",0);');
+    getDB().then(function(dataBase){
+        logger.log('info', dataBase);
+        dataBase.serialize(function() {
+            postarray.forEach(function (value, idx) {
+                dataBase.run('INSERT OR IGNORE INTO ictPosts(idx, title, recent_date, readCheck) VALUES(' + value['number'] + ',\"' + value['title'] + '\",\"' + value['date'] + '\",0);');
+                console.log('INSERT OR IGNORE INTO ictPosts(idx, title, recent_date, readCheck) VALUES(' + value['number'] + ',\"' + value['title'] + '\",\"' + value['date'] + '\",0);');
+            });
         });
+    dataBase.close();
     });
 });
 
 // Connect Database
-//ToDo : db Connection, db design
+/*ToDo : 이미 있는 요소 체크해서 readCheck Update 하기, Slack 기능 제작하기
+ */
 
 
 logger.log('info', '================Scrapping js logging End===================');
