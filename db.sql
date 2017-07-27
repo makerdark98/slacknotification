@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS ictPosts (
+CREATE TABLE IF NOT EXISTS Posts (
     idx INTEGER PRIMARY KEY,
     Title TEXT,
     recent_date DATE,

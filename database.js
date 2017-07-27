@@ -8,7 +8,6 @@ ictdb='db/ict.db';
 logger = require('./logger.js').logger('log/database.log');
 function setDBTable(dataBase){
     return new Promise(function(resolve){
-        logger.log('info', 'start setDBTable');
         let fs = require('fs');
         dataBase.serialize(function () {
             data = fs.readFileSync('db.sql', 'utf-8');
@@ -21,7 +20,6 @@ function setDBTable(dataBase){
 
 function _getDB(databaseName){
     return new Promise(function(resolve) {
-        logger.log('info', 'start getDB');
         let sqlite3 = require('sqlite3').verbose();
         let dataBase = new sqlite3.Database(databaseName);
         setDBTable(dataBase).then(function(){
@@ -36,14 +34,11 @@ exports.getDB = function(databaseName) {
 };
 
 
-exports.getIctPostsData = function(){
-    logger.log('info', 'getIctPostsData start');
-
+exports.getPostsData = function(database){
     let datas =[];
     return new Promise(function(resolve) {
-        _getDB(ictdb).then(function (dataBase) {
-            dataBase.serialize(function () {
-                dataBase.each('select * from ictPosts where readCheck=0;', function (error, row) {
+            database.serialize(function () {
+                database.each('select * from Posts where readCheck=0;', function (error, row) {
                     let data = {
                         idx: row.idx,
                         title: row.Title,
@@ -51,20 +46,18 @@ exports.getIctPostsData = function(){
                         readcheck: row.readCheck
                     };
                     datas.push(data);
-                    dataBase.run('update ictPosts set readCheck=1 where readCheck=0;')
+                    database.run('update Posts set readCheck=1 where readCheck=0;')
                 }, function () {
-                    logger.log('info', 'getIctPostsData end');
                     resolve(datas);
                 });
             });
-        });
     });
 };
 
-exports.insertIctPostsData = function(database, value){
-    logger.log('info', 'insertIctPostsData start');
-
-    database.run('INSERT OR IGNORE INTO ictPosts(idx, title, recent_date, readCheck) VALUES(' + value['number'] + ',\"' + value['title'] + '\",\"' + value['date'] + '\",0);');
-
-    logger.log('info', 'insertIctPostsData end');
+exports.insertPostsData = function(database, value){
+    database.run('INSERT OR IGNORE INTO Posts(idx, title, recent_date, readCheck) VALUES('
+        + value['number'] + ',\"'
+        + value['title'] + '\",\"'
+        + value['date'] + '\",0);'
+    );
 };
