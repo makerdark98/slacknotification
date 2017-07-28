@@ -16,57 +16,6 @@ let token = fs.readFileSync('token.txt','utf-8');
 let RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 /* ======================================================================================= */
 
-/* ==================================== Command Lists ==================================== */
-let commands = {};
-commands.list = [];
-commands.registerCommand = function (command, response, func=function(){}){
-        this.list.push({
-            commandText: command,
-                responseText: response,
-                proc: func
-        });
-};
-commands.registerCommand('!rualive?', '엄마 나 아직 살아있어요!');
-commands.registerCommand('!log', '엄마 여기 로그파일이에요!\n\n');
-commands.registerCommand('!ict', 'ict라고 했어요!', function(channel){
-    let noIctText = '아쉽게도 ict새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
-    let ictText = '오늘의 ict새소식이에요!\n칭찬해주세요~!';
-    databaseJs.getDB(ictDB)
-        .then(databaseJs.getPostDatas)
-        .then(function (postDatas) {
-            if (postDatas.length === 0) {
-                rtm.sendMessage(noIctText, channel);
-            }
-            else {
-                rtm.sendMessage(ictText, channel);
-                sendDataToChannel(postDatas, channel);
-            }
-        });
-});
-commands.registerCommand('!cse', 'cse라고 했어요!', function(channel){
-    let noCseText = '아쉽게도 cse새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
-    let cseText = '오늘의 cse새소식이에요!\n칭찬해주세요~!';
-    databaseJs.getDB(cseDB)
-        .then(databaseJs.getPostDatas)
-        .then(function (postDatas) {
-            if (postDatas.length === 0) {
-                rtm.sendMessage(noCseText, channel);
-            }
-            else {
-                rtm.sendMessage(cseText,channel);
-                sendDataToChannel(postDatas, channel);
-            }
-        });
-});
-commands.registerCommand('!update', '업데이트~ 업데이트~ 업~데~이~트~\n 업데이트에는 조금 시간이 걸려요\n', function(){
-    require('./scrapping.js').update();});
-function sendDataToChannel(datas, channel){
-    datas.forEach(function(data) {
-        rtm.sendMessage(data.title + data.date, channel);
-    });
-}
-/* ======================================================================================== */
-
 /* ==================================== Slack RTM ========================================= */
 let RtmClient = slack.RtmClient;
 let CLIENT_EVENTS = slack.CLIENT_EVENTS;
@@ -125,3 +74,55 @@ schedule.scheduleJob(rule, function() {
 });
 
 /* ========================================================================================= */
+
+
+/* ==================================== Command Lists ==================================== */
+let commands = {};
+commands.list = [];
+commands.registerCommand = function (command, response, func=function(){}){
+        this.list.push({
+            commandText: command,
+                responseText: response,
+                proc: func
+        });
+};
+commands.registerCommand('!rualive?', '엄마 나 아직 살아있어요!');
+commands.registerCommand('!log', '엄마 여기 로그파일이에요!\n\n');
+commands.registerCommand('!ict', 'ict라고 했어요!', function(channel){
+    let noIctText = '아쉽게도 ict새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
+    let ictText = '오늘의 ict새소식이에요!\n칭찬해주세요~!';
+    databaseJs.getDB(ictDB)
+        .then(databaseJs.getPostDatas)
+        .then(function (postDatas) {
+            if (postDatas.length === 0) {
+                rtm.sendMessage(noIctText, channel);
+            }
+            else {
+                rtm.sendMessage(ictText, channel);
+                sendDataToChannel(postDatas, channel);
+            }
+        });
+});
+commands.registerCommand('!cse', 'cse라고 했어요!', function(channel){
+    let noCseText = '아쉽게도 cse새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
+    let cseText = '오늘의 cse새소식이에요!\n칭찬해주세요~!';
+    databaseJs.getDB(cseDB)
+        .then(databaseJs.getPostDatas)
+        .then(function (postDatas) {
+            if (postDatas.length === 0) {
+                rtm.sendMessage(noCseText, channel);
+            }
+            else {
+                rtm.sendMessage(cseText,channel);
+                sendDataToChannel(postDatas, channel);
+            }
+        });
+});
+commands.registerCommand('!update', '업데이트~ 업데이트~ 업~데~이~트~\n 업데이트에는 조금 시간이 걸려요\n', function(){
+    require('./scrapping.js').update();});
+function sendDataToChannel(datas, channel){
+    datas.forEach(function(data) {
+        rtm.sendMessage(data.title + data.date, channel);
+    });
+}
+/* ======================================================================================== */
