@@ -28,7 +28,7 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, function (rtmStartData){
 let RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 //Slack 팀으로부터의 모든 메시지 받기
 //메시지 text
-let ryalive = '엄마 나 아직 살아있어요!';
+let rualive = '엄마 나 아직 살아있어요!';
 let logtext = '엄마 여기 로그파일이에요!\n\n';
 let noicttext = '아쉽게도 ict새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
 let icttext = '오늘의 ict새소식이에요!\n칭찬해주세요~!';
@@ -38,8 +38,8 @@ let updatetext = '업데이트~ 업데이트~ 업~데~이~트~ 업데이트!!!\n
 //
 rtm.on(RTM_EVENTS.MESSAGE, function(message){
     //메시지 받았을 때 수행할 작업을 여기에 작성합니다.
-    if (message.text==='!ryalive?'){
-        rtm.sendMessage(ryalive, message.channel);
+    if (message.text==='!rualive?'){
+        rtm.sendMessage(rualive, message.channel);
     }
     else if(message.log=='!log'){
         let log=fs.readFileSync('log/slack.log');
