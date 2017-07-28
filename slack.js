@@ -35,6 +35,7 @@ let icttext = '오늘의 ict새소식이에요!\n칭찬해주세요~!';
 let nocsetext = '아쉽게도 cse새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
 let csetext = '오늘의 cse새소식이에요!\n칭찬해주세요~!';
 let updatetext = '업데이트~ 업데이트~ 업~데~이~트~ 업데이트!!!\n';
+let unknowntext = '아직 저는 말을 잘 못해요\n그게 머에요?';
 //
 rtm.on(RTM_EVENTS.MESSAGE, function(message){
     //메시지 받았을 때 수행할 작업을 여기에 작성합니다.
@@ -80,6 +81,9 @@ rtm.on(RTM_EVENTS.MESSAGE, function(message){
     else if(message.text==='!update'){
         require('./scrapping.js').update();
         rtm.sendMessage(updatetext,message.channel);
+    }
+    else{
+        rtm.sendMessage(unknowntext,message.channel);
     }
 });
 
