@@ -27,32 +27,50 @@ rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, function (rtmStartData){
 
 let RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 //Slack 팀으로부터의 모든 메시지 받기
+//메시지 text
+let ryalive = '엄마 나 아직 살아있어요!';
+let logtext = '엄마 여기 로그파일이에요!\n\n';
+let noicttext = '아쉽게도 ict새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
+let icttext = '오늘의 ict새소식이에요!\n칭찬해주세요~!';
+let nocsetext = '아쉽게도 cse새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
+let csetext = '오늘의 cse새소식이에요!\n칭찬해주세요~!';
+let updatetext = '업데이트~ 업데이트~ 업~데~이~트~ 업데이트!!!\n';
+//
 rtm.on(RTM_EVENTS.MESSAGE, function(message){
     //메시지 받았을 때 수행할 작업을 여기에 작성합니다.
-    if(message.text==='!ict') {
+    if (message.text==='!ryalive?'){
+        rtm.sendMessage(ryalive, message.channel);
+    }
+    else if(message.log=='!log'){
+        let log=fs.readFileSync('log/slack.log');
+        rtm.sendMessage(logtext, message.channel);
+        rtm.sendMessage(log);
+    }
+    
+    else if(message.text==='!ict') {
         databasejs.getDB('db/ict.db')
             .then(databasejs.getPostsData)
             .then(function (datas) {
                 if (datas.length === 0) {
-                    rtm.sendMessage("아쉽게도 ict새소식이 없어요..\n업데이트 해보시려면 !update를 입력해주세요.", message.channel);
+                    rtm.sendMessage(noicttext, message.channel);
                 }
                 else {
-                    rtm.sendMessage("오늘의 ict새소식이에요!", message.channel);
+                    rtm.sendMessage(icttext, message.channel);
                     for (dataidx in datas) {
                         rtm.sendMessage(datas[dataidx].title + datas[dataidx].date, message.channel);
                     }
                 }
             });
     }
-    if(message.text==='!cse') {
+    else if(message.text==='!cse') {
         databasejs.getDB('db/cse.db')
             .then(databasejs.getPostsData)
             .then(function (datas) {
                 if (datas.length === 0) {
-                    rtm.sendMessage("아쉽게도 cse새소식이 없어요..\n업데이트 해보시려면 !update를 입력해주세요.", message.channel);
+                    rtm.sendMessage(nocsetext, message.channel);
                 }
                 else {
-                    rtm.sendMessage("오늘의 cse새소식이에요!", message.channel);
+                    rtm.sendMessage(csetext, message.channel);
                     for (dataidx in datas) {
                         rtm.sendMessage(datas[dataidx].title + datas[dataidx].date, message.channel);
                     }
@@ -61,7 +79,7 @@ rtm.on(RTM_EVENTS.MESSAGE, function(message){
     }
     else if(message.text==='!update'){
         require('./scrapping.js').update();
-        rtm.sendMessage("업데이트 했어요!",message.channel);
+        rtm.sendMessage(updatetext,message.channel);
     }
 });
 
@@ -78,7 +96,7 @@ schedule.scheduleJob(rule, function() {
         .then(databasejs.getPostsData)
         .then(function (datas) {
             if (datas.length !== 0) {
-                rtm.sendMessage("오늘의 ict 새소식이에요!", c_general);
+                rtm.sendMessage(icttext, c_general);
                 for (dataidx in datas) {
                     rtm.sendMessage(datas[dataidx].title + datas[dataidx].date, c_general);
                 }
@@ -88,7 +106,7 @@ schedule.scheduleJob(rule, function() {
         .then(databasejs.getPostsData)
         .then(function (datas) {
             if (datas.length !== 0) {
-                rtm.sendMessage("오늘의 cse 새소식이에요!", c_general);
+                rtm.sendMessage(csetext, c_general);
                 for (dataidx in datas) {
                     rtm.sendMessage(datas[dataidx].title + datas[dataidx].date, c_general);
                 }

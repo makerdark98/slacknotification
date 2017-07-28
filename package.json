@@ -3,8 +3,10 @@
   "version": "0.0.1",
   "main": "scrapping.js",
   "dependencies": {
+    "@slack/client": "^3.10.0",
     "cheerio": "^1.0.0-rc.2",
     "cheerio-tableparser": "^1.0.1",
+    "node-schedule": "^1.2.3",
     "promise": "^8.0.1",
     "request": "^2.81.0",
     "sqlite": "^2.8.0",
