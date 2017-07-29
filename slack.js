@@ -7,9 +7,10 @@ let fs = require('fs');
 let slack = require('@slack/client');
 let logger = require('./logger.js').logger('log/slack.log');
 let databaseJs = require('./database.js');
-let ictDB = 'db/ict.db';
-let cseDB = 'db/cse.db';
-let accordDB = 'db/accord.db';
+let DBlist = [];
+DBlist['ict']='db/ict.db';
+DBlist['cse'] = 'db/cse.db';
+DBlist['accord'] = 'db/accord.db';
 let commands = {
     list: [],
     registerCommand: function (commandArr, response, func=function(){}) {
@@ -20,19 +21,41 @@ let commands = {
         });
     },
     getCommandString: function(){
-      let commandstr='';
-      for(let i = 0; i<this.list.length; i++){
-          commandstr+=this.list[i].commandText[0];
-          if(this.list[i].commandText.length>1) {
-              commandstr += '(';
-              for (let j = 1; j < this.list[i].commandText.length; j++) {
-                  commandstr += this.list[i].commandText[j] + ' ';
-              }
-              commandstr += ')';
-          }
-          commandstr += '\n\n';
-      }
-      return commandstr;
+        let commandstr='';
+        for(let i = 0; i<this.list.length; i++){
+            commandstr+=this.list[i].commandText[0];
+            if(this.list[i].commandText.length>1) {
+                commandstr += '(';
+                for (let j = 1; j < this.list[i].commandText.length; j++) {
+                    commandstr += this.list[i].commandText[j] + ' ';
+                }
+                commandstr += ')';
+            }
+            commandstr += '\n\n';
+        }
+        return commandstr;
+    },
+    printFromDBToChannel: function(databaseName, noNewInfoText, NewInfoText, channel){
+        databaseJs.getDB(databaseName)
+            .then(databaseJs.getPostDatas)
+            .then(function (postDatas) {
+                if (postDatas.length === 0) {
+                    rtm.sendMessage(noNewInfoText, channel);
+                }
+                else {
+                    rtm.sendMessage(NewInfoText, channel);
+                    sendDataToChannel(postDatas, channel);
+                }
+            });
+    },
+    autoPrintFromDBoChannel: function(databaseName, channel) {
+        databaseJs.getDB(databaseName)
+            .then(databaseJs.getPostDatas)
+            .then(function (postDatas) {
+                if (postDatas.length !== 0) {
+                    sendDataToChannel(postDatas, channel);
+                }
+            });
     }
 };
 /* ======================================================================================= */
@@ -81,22 +104,9 @@ rule.minute = new schedule.Range(0,59,10);
 schedule.scheduleJob(rule, function() {
     logger.log('info', 'cronjob start');
     require('./scrapping').update();
-    databaseJs.getDB(ictDB)
-        .then(databaseJs.getPostDatas)
-        .then(function (postDatas) {
-            if (postDatas.length !== 0) {
-                rtm.sendMessage(ictText, generalChannelId);
-                sendDataToChannel(postDatas, generalChannelId);
-            }
-        });
-    databaseJs.getDB(cseDB)
-        .then(databaseJs.getPostDatas)
-        .then(function (postDatas) {
-            if (postDatas.length !== 0) {
-                rtm.sendMessage(cseText, generalChannelId);
-                sendDataToChannel(postDatas, generalChannelId);
-            }
-        });
+    for(let key in DBlist){
+        commands.autoPrintFromDBoChannel(DBlist[key], generalChannelId);
+    }
 });
 
 /* ========================================================================================= */
@@ -110,52 +120,22 @@ commands.registerCommand(['hello', 'hi', '안녕'],
 commands.registerCommand(['!ict'], 'ict라고 했어요!', function(channel){
     let noIctText = '아쉽게도 ict새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
     let ictText = '오늘의 ict새소식이에요!\n칭찬해주세요~!';
-    databaseJs.getDB(ictDB)
-        .then(databaseJs.getPostDatas)
-        .then(function (postDatas) {
-            if (postDatas.length === 0) {
-                rtm.sendMessage(noIctText, channel);
-            }
-            else {
-                rtm.sendMessage(ictText, channel);
-                sendDataToChannel(postDatas, channel);
-            }
-        });
+    commands.printFromDBToChannel(DBlist['ict'], noIctText, ictText, channel);
 });
 commands.registerCommand(['!cse'], 'cse라고 했어요!', function(channel){
     let noCseText = '아쉽게도 cse새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
     let cseText = '오늘의 cse새소식이에요!\n칭찬해주세요~!';
-    databaseJs.getDB(cseDB)
-        .then(databaseJs.getPostDatas)
-        .then(function (postDatas) {
-            if (postDatas.length === 0) {
-                rtm.sendMessage(noCseText, channel);
-            }
-            else {
-                rtm.sendMessage(cseText,channel);
-                sendDataToChannel(postDatas, channel);
-            }
-        });
+    commands.printFromDBToChannel(DBlist['cse'], noCseText, cseText, channel);
 });
 commands.registerCommand(['!accord'], 'accord라고 했어요!', function(channel){
-   let noAccordText = '아쉡게도 accord 새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
-   let accordText = '오늘의 accord 새소식이에요!\n칭찬해주세요~!';
-   databaseJs.getDB(accordDB)
-       .then(databaseJs.getPostDatas)
-       .then(function (postDatas) {
-           if (postDatas.length === 0) {
-               rtm.sendMessage(noAccordText, channel);
-           }
-           else {
-               rtm.sendMessage(accordText, channel);
-               sendDataToChannel(postDatas, channel);
-           }
-       })
+    let noAccordText = '아쉡게도 accord 새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
+    let accordText = '오늘의 accord 새소식이에요!\n칭찬해주세요~!';
+    commands.printFromDBToChannel(DBlist['accord'], noAccordText, accordText, channel);
 });
 commands.registerCommand(['!update'],
     '업데이트~ 업데이트~ 업~데~이~트~'+
     '업데이트에는 조금 시간이 걸려요\n', function(){
-    require('./scrapping.js').update();});
+        require('./scrapping.js').update();});
 commands.registerCommand(['!help'], '현재 가능한 명령은 (괄호 안은 동일 명령)\n' +
     commands.getCommandString()+
     '\n가 있어요');
