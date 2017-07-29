@@ -9,6 +9,7 @@ let logger = require('./logger.js').logger('log/slack.log');
 let databaseJs = require('./database.js');
 let ictDB = 'db/ict.db';
 let cseDB = 'db/cse.db';
+let accordDB = 'db/accord.db';
 let commands = {
     list: [],
     registerCommand: function (commandArr, response, func=function(){}) {
@@ -74,7 +75,6 @@ rtm.start();
 
 /* ===================================== Schedule ========================================= */
 
-
 let schedule = require('node-schedule');
 let rule = new schedule.RecurrenceRule();
 rule.minute = new schedule.Range(0,59,10);
@@ -136,6 +136,21 @@ commands.registerCommand(['!cse'], 'cse라고 했어요!', function(channel){
                 sendDataToChannel(postDatas, channel);
             }
         });
+});
+commands.registerCommand(['!accord'], 'accord라고 했어요!', function(channel){
+   let noAccordText = '아쉡게도 accord 새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
+   let accordText = '오늘의 accord 새소식이에요!\n칭찬해주세요~!';
+   databaseJs.getDB(accordDB)
+       .then(databaseJs.getPostDatas)
+       .then(function (postDatas) {
+           if (postDatas.length === 0) {
+               rtm.sendMessage(noAccordText, channel);
+           }
+           else {
+               rtm.sendMessage(accordText, channel);
+               sendDataToChannel(postDatas, channel);
+           }
+       })
 });
 commands.registerCommand(['!update'],
     '업데이트~ 업데이트~ 업~데~이~트~'+
