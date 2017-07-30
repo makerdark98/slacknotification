@@ -35,6 +35,11 @@ let commands = {
         }
         return commandstr;
     },
+    sendDataToChannel: function(datas, channel){
+        datas.forEach(function(data) {
+            rtm.sendMessage(data.idx + '\t' + data.title + '\t' + data.date, channel);
+        });
+    },
     printFromDBToChannel: function(databaseName, noNewInfoText, NewInfoText, channel){
         databaseJs.getDB(databaseName)
             .then(databaseJs.getPostDatas)
@@ -44,7 +49,7 @@ let commands = {
                 }
                 else {
                     rtm.sendMessage(NewInfoText, channel);
-                    sendDataToChannel(postDatas, channel);
+                    commands.sendDataToChannel(postDatas, channel);
                 }
             });
     },
@@ -53,7 +58,7 @@ let commands = {
             .then(databaseJs.getPostDatas)
             .then(function (postDatas) {
                 if (postDatas.length !== 0) {
-                    sendDataToChannel(postDatas, channel);
+                    commands.sendDataToChannel(postDatas, channel);
                 }
             });
     }
@@ -139,9 +144,4 @@ commands.registerCommand(['!update'],
 commands.registerCommand(['!help'], '현재 가능한 명령은 (괄호 안은 동일 명령)\n' +
     commands.getCommandString()+
     '\n가 있어요');
-function sendDataToChannel(datas, channel){
-    datas.forEach(function(data) {
-        rtm.sendMessage(data.title + data.date, channel);
-    });
-}
 /* ======================================================================================== */

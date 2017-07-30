@@ -8,7 +8,7 @@ let ictdb = 'db/ict.db';
 let cse_url = 'http://cse.cau.ac.kr/20141201/sub05/sub0501.php';
 let csedb = 'db/cse.db';
 let accord_url = 'http://cse.cau.ac.kr/20141201/sub04/sub0403.php';
-let accorddb = 'db/acoord.db';
+let accorddb = 'db/accord.db';
 
 logger=require('./logger.js').logger('log/scrapping.log');
 let request = require('request');
@@ -29,7 +29,7 @@ function requestIct(){
     });
 }
 function parseIct(body){
-    postarray=[];
+    let postarray=[];
     return new Promise(function(resolve, reject){
         let $ = cheerio.load(body, {
             normalizeWhitespace: true
@@ -71,7 +71,7 @@ function requestCse(){
     });
 }
 function parseCse(body){
-    postarray=[];
+    let postarray=[];
     return new Promise(function(resolve, reject){
         let $ = cheerio.load(body, {
            normalizeWhitespace: true
@@ -80,7 +80,7 @@ function parseCse(body){
         postElements.each(function (){
             let children = $(this).children();
             let row = {
-                'number':Number($(children[2]).find('a').attr('href').replace(/[^0-9]/g, '')),
+                'number':Number($(children[2]).find('a').attr('href').match(/uid=(\d+)/g)[0].replace(/[^0-9]/g,'')),
                 'title': $(children[2]).text().replace(/[\n\t\r]/g,''),
                 'date' : $(children[4]).text()
             };
@@ -111,7 +111,7 @@ function requestAccord(){
     });
 }
 function parseAccord(body){
-    postarray=[];
+    let postarray=[];
     return new Promise(function(resolve, reject){
         let $ = cheerio.load(body, {
             normalizeWhitespace: true
@@ -120,11 +120,11 @@ function parseAccord(body){
         postElements.each(function (){
             let children = $(this).children();
             let row = {
-                'number':Number($(children[2]).find('a').attr('href').replace(/[^0-9]/g, '')),
+                'number':Number($(children[2]).find('a').attr('href').match(/uid=(\d+)/g)[0].replace(/[^0-9]/g,'')),
                 'title': $(children[2]).text().replace(/[\n\t\r]/g, ''),
                 'date' : $(children[4]).text()
             };
-            postarray.pusb(row);
+            postarray.push(row);
         });
         resolve(postarray);
     });
@@ -133,7 +133,7 @@ function pushAccord(postarray){
     databasejs.getDB(accorddb).then(function(database){
         database.serialize(function(){
             postarray.forEach(function(value){
-                databasejs.insertPostsData(databse, value);
+                databasejs.insertPostsData(database, value);
             });
         });
         database.close();
@@ -154,7 +154,7 @@ function _update() {
         });
     requestAccord()
         .then(parseAccord)
-        .then(pushIct)
+        .then(pushAccord)
         .catch(function(error){
         });
 }

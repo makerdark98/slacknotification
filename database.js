@@ -7,7 +7,7 @@ function setDBTable(dataBase){
     return new Promise(function(resolve){
         let fs = require('fs');
         dataBase.serialize(function () {
-            data = fs.readFileSync('db.sql', 'utf-8');
+            let data = fs.readFileSync('db.sql', 'utf-8');
             dataBase.run(data);
         });
         resolve();
@@ -49,7 +49,7 @@ exports.getPostDatas = function(database){
                     }
                     let data = {
                         idx: row.idx,
-                        title: row.Title,
+                        title: row.title,
                         date: row.recent_date,
                         readcheck: row.readCheck
                     };
