@@ -11,6 +11,8 @@ let accord_url = 'http://cse.cau.ac.kr/20141201/sub04/sub0403.php';
 let accorddb = 'db/accord.db';
 let cau_url = 'https://www.cau.ac.kr/04_ulife/causquare/notice/notice_list.php?bbsId=cau_notice';
 let caudb = 'db/cau.db';
+let dor_url = 'http://dormitory.cau.ac.kr/bbs/bbs_list.php?bbsID=notice';
+let dordb = 'db/dor.db';
 logger=require('./logger.js').logger('log/scrapping.log');
 let request = require('request');
 let cheerio = require('cheerio');
@@ -49,15 +51,16 @@ function parseIct(body){
     });
 }
 function pushIct(postarray){
-    databasejs.getDB(ictdb).then(function (database) {
-        database.serialize(function () {
-            postarray.forEach(function (value) {
-                databasejs.insertPostsData(database, value);
+    return new Promise(function(resolve, reject) {
+        databasejs.getDB(ictdb).then(function (database) {
+            database.serialize(function () {
+                postarray.forEach(function (value) {
+                    databasejs.insertPostsData(database, value);
+                });
             });
+            database.close();
+            resolve(postarray.length);
         });
-
-        database.close();
-
     });
 }
 function requestCse(){
@@ -91,13 +94,16 @@ function parseCse(body){
     });
 }
 function pushCse(postarray){
-    databasejs.getDB(csedb).then(function(database){
-        database.serialize(function(){
-            postarray.forEach(function(value){
-                databasejs.insertPostsData(database, value);
+    return new Promise(function(resolve, reject) {
+        databasejs.getDB(csedb).then(function (database) {
+            database.serialize(function () {
+                postarray.forEach(function (value) {
+                    databasejs.insertPostsData(database, value);
+                });
             });
+            database.close();
+            resolve(postarray.length);
         });
-        database.close();
     });
 }
 function requestAccord(){
@@ -131,13 +137,16 @@ function parseAccord(body){
     });
 }
 function pushAccord(postarray){
-    databasejs.getDB(accorddb).then(function(database){
-        database.serialize(function(){
-            postarray.forEach(function(value){
-                databasejs.insertPostsData(database, value);
+    return new Promise(function(resolve, reject) {
+        databasejs.getDB(accorddb).then(function (database) {
+            database.serialize(function () {
+                postarray.forEach(function (value) {
+                    databasejs.insertPostsData(database, value);
+                });
             });
+            database.close();
+            resolve(postarray.length);
         });
-        database.close();
     });
 }
 
@@ -179,13 +188,69 @@ function parseCau(body){
     });
 }
 function pushCau(postarray){
-    databasejs.getDB(caudb).then(function(database){
-        database.serialize(function(){
-            postarray.forEach(function(value){
-                databasejs.insertPostsData(database, value);
+    return new Promise(function(resolve, reject) {
+        databasejs.getDB(caudb).then(function (database) {
+            database.serialize(function () {
+                postarray.forEach(function (value) {
+                    databasejs.insertPostsData(database, value);
+                });
             });
+            database.close();
+            resolve(postarray.length);
         });
-        database.close();
+    });
+}
+function requestDor(){
+    return new Promise(function(resolve, reject) {
+        let webdriver = require('selenium-webdriver');
+        let By = webdriver.By;
+        let body;
+        let driver = new webdriver.Builder()
+            .forBrowser('chrome')
+            .build();
+        driver.get(dor_url)
+            .then(function () {
+                body = driver.findElement(By.tagName('body')).getAttribute('innerHTML');
+            })
+            .then(function () {
+                driver.quit();
+                resolve(body);
+            });
+    });
+}
+function parseDor(body){
+    let postarray=[];
+    return new Promise(function(resolve, reject){
+        let $ = cheerio.load(body, {
+            normalizeWhitespace: true
+        });
+        let postElements = $('table.tbl_board tbody tr');
+        postElements.each(function (){
+            let children = $(this).children();
+            if(children.text()==='' || $(children[0]).text()==='번호'){
+                return;
+            }
+            let row = {
+                'number':Number($(children[1]).find('a').attr('href').replace(/[^0-9]/g,'')),
+                'title': $(children[1]).text().replace(/[\n\t\r]/g, ''),
+                'date' : $(children[4]).text()
+            };
+            postarray.push(row);
+        });
+        resolve(postarray);
+    });
+}
+function pushDor(postarray){
+    return new Promise(function(resolve, reject) {
+        databasejs.getDB(dordb).then(function (database) {
+            database.serialize(function () {
+                postarray.forEach(function (value) {
+                    databasejs.insertPostsData(database, value);
+                });
+            });
+            database.close();
+            resolve(postarray.length);
+        });
     });
 }
 
@@ -214,8 +279,13 @@ function _update() {
         .catch(function(error){
            logger.log('error', error);
         });
+    requestDor()
+        .then(parseDor)
+        .then(pushDor)
+        .catch(function(error){
+            logger.log('error', error);
+        });
 }
 
 exports.update=_update;
 
-// Connect Database

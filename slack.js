@@ -1,7 +1,6 @@
 /**
  * Created by md98 on 17. 7. 26.
  */
-//TODO: DB close 구현
 /* ==================================== Require Declaration=============================== */
 let fs = require('fs');
 let slack = require('@slack/client');
@@ -12,6 +11,7 @@ DBlist['ict']='db/ict.db';
 DBlist['cse'] = 'db/cse.db';
 DBlist['accord'] = 'db/accord.db';
 DBlist['cau'] = 'db/cau.db';
+DBlist['dor'] = 'db/dor.db';
 let commands = {
     list: [],
     registerCommand: function (commandArr, response, func=function(){}) {
@@ -142,6 +142,11 @@ commands.registerCommand(['!cau'], 'cau라고 했어요!', function(channel){
     let noAccordText = '아쉡게도 cau 새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
     let accordText = '오늘의 cau 새소식이에요!\n칭찬해주세요~!';
     commands.printFromDBToChannel(DBlist['cau'], noAccordText, accordText, channel);
+});
+commands.registerCommand(['!dor'], 'dor라고 했어요!', function(channel){
+    let noAccordText = '아쉡게도 dor 새소식이 없어요. ㅠ\n업데이트 해보시려면 !update라고 말해줘요.';
+    let accordText = '오늘의 dor 새소식이에요!\n칭찬해주세요~!';
+    commands.printFromDBToChannel(DBlist['dor'], noAccordText, accordText, channel);
 });
 commands.registerCommand(['!update'],
     '업데이트~ 업데이트~ 업~데~이~트~'+
