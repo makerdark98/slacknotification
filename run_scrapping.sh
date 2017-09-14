@@ -1,3 +1,4 @@
+#!/bin/bash
 mkdir db
 mkdir log
 forever start scrapping.js

@@ -290,7 +290,7 @@ function _update() {
 exports.update=_update;
 let schedule = require('node-schedule');
 let rule = new schedule.RecurrenceRule();
-rule.minute = new schedule.Range(0,59,10);
+rule.minute = new schedule.Range(0,59,5);
 schedule.scheduleJob(rule, function() {
     logger.log('info', 'cronjob start update');
     _update();
