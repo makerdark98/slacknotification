@@ -9,6 +9,7 @@ sudo ln -sf /usr/local/n/versions/node/8.4.0/bin/node /usr/bin/node
 echo 'npm update'
 npm update > init.log
 npm install selenium-webdriver > init.log
+sudo npm install -g forever
 
 
 MACHINE_TYPE=$(uname -m)
