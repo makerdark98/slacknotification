@@ -3,7 +3,7 @@ echo "Slack Notification Configure"
 
 sudo apt-get update
 sudo apt-get install -y npm
-npm install -g n
+sudo npm install -g n
 sudo n 8.4.0
 sudo ln -sf /usr/local/n/versions/node/8.4.0/bin/node /usr/bin/node
 echo 'npm update'
